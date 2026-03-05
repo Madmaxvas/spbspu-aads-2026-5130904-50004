@@ -107,10 +107,6 @@ int main()
   return 0;
 }
 
-BOOST_TEST_NO_MAIN
-#include <boost/test/included/unit_test.hpp>
-BOOST_TEST_ALTERNATIVE_INIT_API
-
 int init_unit_test_suite(int argc, char* argv[]) {
   return 0;
 }
