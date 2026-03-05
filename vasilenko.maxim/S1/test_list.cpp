@@ -80,5 +80,6 @@ int main()
   testClear();
 
   std::cout << "All tests passed" << "\n";
+
   return 0;
 }
