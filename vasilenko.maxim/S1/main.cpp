@@ -1,89 +1,81 @@
 #include <iostream>
 #include <string>
-#include <sstream>
-#include <stdexcept>
 #include <limits>
 #include "list.hpp"
 
-struct NamedList
-{
+struct NamedList {
   std::string name;
-  vasilenko_maxim::List< long long > numbers;
+  vasilenko_maxim::List< unsigned long long > numbers;
 };
 
 int main()
 {
   using namespace vasilenko_maxim;
   List< NamedList > allSeqs;
-  std::string line;
+  std::string name;
 
-  while (std::getline(std::cin, line))
-  {
-    if (line.empty())
-    {
-      continue;
-    }
-    std::stringstream ss(line);
-    std::string listName;
-    if (!(ss >> listName))
-    {
-      continue;
-    }
-
+  while (std::cin >> name) {
     NamedList current;
-    current.name = listName;
-    std::string valStr;
-    try
-    {
-      while (ss >> valStr)
-      {
-        current.numbers.pushBack(std::stoll(valStr));
+    current.name = name;
+
+    while (true) {
+      int c = std::cin.peek();
+      if (c == '\n' || c == std::char_traits< char >::eof()) {
+        if (c == '\n') {
+          std::cin.get();
+        }
+        break;
       }
-    }
-    catch (const std::out_of_range &)
-    {
-      std::cerr << "Error: constant too large\n";
-      return 1;
-    }
-    catch (const std::invalid_argument &)
-    {
-      std::cerr << "Error: invalid input\n";
-      return 1;
+      if (std::isspace(c)) {
+        std::cin.get();
+        continue;
+      }
+
+      unsigned long long val = 0;
+      if (std::cin >> val) {
+        current.numbers.pushBack(val);
+      } else {
+        std::cerr << "Overflow error\n";
+        return 1;
+      }
     }
     allSeqs.pushBack(current);
   }
 
-  if (allSeqs.isEmpty())
-  {
+  if (allSeqs.isEmpty()) {
     std::cout << "0\n";
     return 0;
   }
 
-  for (LIter< NamedList > it = allSeqs.begin(); it != allSeqs.end(); ++it)
-  {
-    std::cout << it->name << (it != allSeqs.end() ? " " : "");
+  bool first = true;
+  for (LIter< NamedList > it = allSeqs.begin(); it != allSeqs.end(); ++it) {
+    if (!first) {
+      std::cout << " ";
+    }
+    std::cout << it->name;
+    first = false;
   }
   std::cout << "\n";
 
-  List< long long > rowSums;
+  List< unsigned long long > rowSums;
   bool hasData = true;
-  while (hasData)
-  {
+  while (hasData) {
     hasData = false;
-    long long currentSum = 0;
+    unsigned long long currentSum = 0;
     bool firstInRow = true;
 
-    for (LIter< NamedList > it = allSeqs.begin(); it != allSeqs.end(); ++it)
-    {
-      if (!it->numbers.isEmpty())
-      {
-        if (!firstInRow)
-        {
+    for (LIter< NamedList > it = allSeqs.begin(); it != allSeqs.end(); ++it) {
+      if (!it->numbers.isEmpty()) {
+        if (!firstInRow) {
           std::cout << " ";
         }
-        long long val = it->numbers.front();
+        unsigned long long val = it->numbers.front();
         std::cout << val;
 
+        if (std::numeric_limits< unsigned long long >::max() - currentSum < val) {
+          std::cerr << "Overflow error\n";
+          return 1;
+        }
         currentSum += val;
         it->numbers.popFront();
         hasData = true;
@@ -91,18 +83,25 @@ int main()
       }
     }
 
-    if (!firstInRow)
-    {
+    if (!firstInRow) {
       std::cout << "\n";
       rowSums.pushBack(currentSum);
     }
   }
 
-  for (LIter< long long > sit = rowSums.begin(); sit != rowSums.end(); ++sit)
-  {
-    std::cout << *sit << (sit != rowSums.end() ? " " : "");
+  if (rowSums.isEmpty()) {
+    std::cout << "0\n";
+  } else {
+    bool firstSum = true;
+    for (LIter< unsigned long long > sit = rowSums.begin(); sit != rowSums.end(); ++sit) {
+      if (!firstSum) {
+        std::cout << " ";
+      }
+      std::cout << *sit;
+      firstSum = false;
+    }
+    std::cout << "\n";
   }
-  std::cout << "\n";
 
   return 0;
 }

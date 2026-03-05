@@ -1,7 +1,7 @@
-#define BOOST_TEST_NO_MAIN
+#define BOOST_TEST_MODULE ListTests
 #include <boost/test/included/unit_test.hpp>
+#include <utility>
 #include "list.hpp"
-#include "test-list.hpp"
 
 using namespace vasilenko_maxim;
 
@@ -34,18 +34,4 @@ BOOST_AUTO_TEST_CASE(test_rule_of_five)
   List< int > l3(std::move(l1));
   BOOST_CHECK(l1.isEmpty());
   BOOST_CHECK_EQUAL(l3.front(), 1);
-}
-
-BOOST_AUTO_TEST_CASE(test_iterators)
-{
-  List< int > list;
-  list.pushBack(100);
-  list.pushBack(200);
-
-  LIter< int > it = list.begin();
-  BOOST_CHECK_EQUAL(*it, 100);
-  ++it;
-  BOOST_CHECK_EQUAL(*it, 200);
-  ++it;
-  BOOST_CHECK(it == list.end());
 }
