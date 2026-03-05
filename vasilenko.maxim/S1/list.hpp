@@ -130,7 +130,7 @@ vasilenko_maxim::List<T>& vasilenko_maxim::List<T>::operator=(const List& other)
 {
   if (this != &other) {
     clear();
-    for (auto it = other.begin(); it != other.end(); ++it) {
+    for (vasilenko_maxim::LCIter<T> it = other.begin(); it != other.end(); ++it) {
       pushBack(*it);
     }
   }
