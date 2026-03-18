@@ -1,91 +1,108 @@
-#include "BiList.hpp"
+#include "list.hpp"
 #include <iostream>
-#include <string>
 #include <limits>
+#include <string>
 #include <utility>
 
 int main()
 {
-  using namespace vasilenko_maxim;
-  BiList< std::pair< std::string, BiList< unsigned long long > > > data;
+  using ListType = vasilenko_maxim::List< std::pair< std::string, vasilenko_maxim::List< unsigned long long > > >;
+  ListType data;
   std::string name = "";
 
-  while (std::cin >> name)
-  {
-    BiList< unsigned long long > nums;
-    unsigned long long val = 0;
-    while (std::cin >> val)
-    {
-      nums.push_back(val);
+  while (std::cin >> name) {
+    vasilenko_maxim::List< unsigned long long > seq;
+    while (true) {
+      int c = std::cin.get();
+      while (c == ' ' || c == '\t' || c == '\r') {
+        c = std::cin.get();
+      }
+
+      if (c == '\n' || c == EOF) {
+        break;
+      }
+      std::cin.unget();
+
+      unsigned long long val = 0;
+      if (std::cin >> val) {
+        seq.pushBack(val);
+      } else {
+        break;
+      }
     }
-    data.push_back(std::make_pair(name, std::move(nums)));
-    if (!std::cin.eof())
-    {
-      std::cin.clear();
-    }
+    data.pushBack(std::make_pair(name, std::move(seq)));
   }
 
-  if (data.empty())
-  {
+  if (data.empty()) {
     std::cout << "0\n";
     return 0;
   }
 
-  for (auto it = data.begin(); it != data.end(); )
-  {
+  bool firstName = true;
+  for (auto it = data.begin(); it != data.end(); ++it) {
+    if (!firstName) {
+      std::cout << " ";
+    }
     std::cout << it->first;
-    if (++it != data.end()) std::cout << " ";
+    firstName = false;
   }
   std::cout << "\n";
 
-  BiList< unsigned long long > sums;
+  using IterPair = std::pair< vasilenko_maxim::LIter< unsigned long long >, vasilenko_maxim::LIter< unsigned long long > >;
+  vasilenko_maxim::List< IterPair > trackers;
+
+  for (auto it = data.begin(); it != data.end(); ++it) {
+    trackers.pushBack(std::make_pair(it->second.begin(), it->second.end()));
+  }
+
+  vasilenko_maxim::List< unsigned long long > sums;
   bool processing = true;
-  size_t index = 0;
 
-  while (processing)
-  {
+  while (processing) {
     processing = false;
-    unsigned long long current_sum = 0;
-    bool first_in_row = true;
-    bool row_has_data = false;
+    unsigned long long currentSum = 0;
+    bool rowHasData = false;
+    bool firstInRow = true;
 
-    for (auto it = data.begin(); it != data.end(); ++it)
-    {
-      if (index < it->second.size())
-      {
-        auto inner_it = it->second.begin();
-        for (size_t i = 0; i < index; ++i) ++inner_it;
+    for (auto it = trackers.begin(); it != trackers.end(); ++it) {
+      if (it->first != it->second) {
+        unsigned long long val = *(it->first);
 
-        if (!first_in_row) std::cout << " ";
-        std::cout << *inner_it;
+        if (!firstInRow) {
+          std::cout << " ";
+        }
+        std::cout << val;
+        firstInRow = false;
 
-        if (row_has_data && (std::numeric_limits< unsigned long long >::max() - current_sum < *inner_it))
-        {
+        if (rowHasData && (std::numeric_limits< unsigned long long >::max() - currentSum < val)) {
           std::cerr << "Overflow\n";
           return 1;
         }
-        current_sum += *inner_it;
-        row_has_data = true;
-        first_in_row = false;
+        currentSum += val;
+        rowHasData = true;
+
+        ++(it->first);
+        if (it->first != it->second) {
+          processing = true;
+        }
       }
-      if (index + 1 < it->second.size()) processing = true;
     }
 
-    if (row_has_data)
-    {
+    if (rowHasData) {
       std::cout << "\n";
-      sums.push_back(current_sum);
+      sums.pushBack(currentSum);
     }
-    index++;
   }
 
-  for (auto it = sums.begin(); it != sums.end(); )
-  {
+  bool firstSum = true;
+  for (auto it = sums.begin(); it != sums.end(); ++it) {
+    if (!firstSum) {
+      std::cout << " ";
+    }
     std::cout << *it;
-    if (++it != sums.end()) std::cout << " ";
+    firstSum = false;
   }
   std::cout << "\n";
 
   return 0;
 }
-
