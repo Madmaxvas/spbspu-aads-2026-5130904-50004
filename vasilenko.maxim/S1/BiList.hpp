@@ -135,21 +135,6 @@ namespace vasilenko_maxim
       return *this;
     }
 
-    BiList & operator=(BiList && other) noexcept
-    {
-      if (this != &other)
-      {
-        clear();
-        head = other.head;
-        tail = other.tail;
-        size_ = other.size_;
-        other.head = nullptr;
-        other.tail = nullptr;
-        other.size_ = 0;
-      }
-      return *this;
-    }
-
     void push_back(const T & d)
     {
       Node * newNode = new Node(d);
@@ -238,26 +223,6 @@ namespace vasilenko_maxim
     bool empty() const noexcept
     {
       return head == nullptr;
-    }
-
-    T & front()
-    {
-      return head->val;
-    }
-
-    const T & front() const
-    {
-      return head->val;
-    }
-
-    T & back()
-    {
-      return tail->val;
-    }
-
-    const T & back() const
-    {
-      return tail->val;
     }
 
     BIter begin()
