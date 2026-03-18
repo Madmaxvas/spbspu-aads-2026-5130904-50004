@@ -6,14 +6,17 @@
 
 int main()
 {
-  using ListType = vasilenko_maxim::BiList< std::pair< std::string, vasilenko_maxim::BiList< unsigned long long > > >;
+  using SeqType = vasilenko_maxim::BiList< unsigned long long >;
+  using EntryType = std::pair< std::string, SeqType >;
+  using ListType = vasilenko_maxim::BiList< EntryType >;
+
   ListType data;
-  std::string name;
+  std::string name = "";
 
   while (std::cin >> name) {
-    vasilenko_maxim::BiList< unsigned long long > seq;
+    SeqType seq;
     while (std::cin.peek() != '\n' && std::cin.peek() != EOF) {
-      unsigned long long val;
+      unsigned long long val = 0;
       if (std::cin >> val) {
         seq.pushBack(val);
       } else {
@@ -36,14 +39,18 @@ int main()
   }
   std::cout << "\n";
 
-  using IterPair = std::pair< vasilenko_maxim::LIter< unsigned long long >, vasilenko_maxim::LIter< unsigned long long > >;
+  using ValueIter = vasilenko_maxim::LIter< unsigned long long >;
+  using IterPair = std::pair< ValueIter, ValueIter >;
   vasilenko_maxim::BiList< IterPair > trackers;
+
   for (auto it = data.begin(); it != data.end(); ++it) {
     trackers.pushBack(std::make_pair(it->second.begin(), it->second.end()));
   }
 
-  vasilenko_maxim::BiList< unsigned long long > sums;
+  SeqType sums;
   bool processing = true;
+  bool overflow = false;
+
   while (processing) {
     processing = false;
     unsigned long long currentSum = 0;
@@ -56,11 +63,14 @@ int main()
         std::cout << (firstInRow ? "" : " ") << val;
         firstInRow = false;
 
-        if (rowHasData && (std::numeric_limits< unsigned long long >::max() - currentSum < val)) {
-          std::cerr << "Overflow\n";
-          return 1;
+        if (!overflow) {
+          unsigned long long maxVal = std::numeric_limits< unsigned long long >::max();
+          if (rowHasData && (maxVal - currentSum < val)) {
+            overflow = true;
+          } else {
+            currentSum += val;
+          }
         }
-        currentSum += val;
         rowHasData = true;
 
         ++(it->first);
@@ -69,8 +79,13 @@ int main()
         }
       }
     }
+
     if (rowHasData) {
       std::cout << "\n";
+      if (overflow) {
+        std::cerr << "Overflow\n";
+        return 1;
+      }
       sums.pushBack(currentSum);
     }
   }
