@@ -1,286 +1,178 @@
 #ifndef VASILENKO_MAXIM_LIST_HPP
 #define VASILENKO_MAXIM_LIST_HPP
 
-#include <utility>
+#include <cstddef>
+#include <algorithm>
 
-namespace vasilenko_maxim {
-  template< class T >
-  class LIter;
+namespace vasilenko_maxim
+{
+  template< typename T >
+  class Bilist
+  {
+    struct List
+    {
+      T data;
+      List * prev;
+      List * next;
 
-  template< class T >
-  class LCIter;
+      List(const T & val, List * p, List * n):
+        data(val),
+        prev(p),
+        next(n)
+      {}
+    };
 
-  template< class T >
-  class List {
   public:
     using value_type = T;
 
-    List();
-    List(const List& other);
-    List(List&& other) noexcept;
-    ~List();
+    template< typename U >
+    class BasicIterator
+    {
+      friend class Bilist< T >;
+    public:
+      using iterator_category = std::bidirectional_iterator_tag;
+      using value_type = U;
+      using difference_type = std::ptrdiff_t;
+      using pointer = U *;
+      using reference = U &;
 
-    List& operator=(const List& other);
-    List& operator=(List&& other) noexcept;
+      BasicIterator(): node_(nullptr) {}
+      explicit BasicIterator(List * node): node_(node) {}
 
-    void pushBack(const T& value);
-    void pushFront(const T& value);
-    void popBack();
-    void popFront();
-    void clear();
-    bool isEmpty() const;
+      reference operator*() const { return node_->data; }
+      pointer operator->() const { return &node_->data; }
 
-    T& front();
-    const T& front() const;
-    T& back();
-    const T& back() const;
+      BasicIterator & operator++()
+      {
+        node_ = node_->next;
+        return *this;
+      }
 
-    LIter< T > begin();
-    LIter< T > end();
-    LCIter< T > begin() const;
-    LCIter< T > end() const;
+      BasicIterator operator++(int)
+      {
+        BasicIterator temp = *this;
+        node_ = node_->next;
+        return temp;
+      }
 
-  private:
-    struct Node {
-      T data_;
-      Node* prev_;
-      Node* next_;
+      BasicIterator & operator--()
+      {
+        node_ = node_->prev;
+        return *this;
+      }
 
-      Node(const T& data, Node* prev, Node* next);
+      BasicIterator operator--(int)
+      {
+        BasicIterator temp = *this;
+        node_ = node_->prev;
+        return temp;
+      }
+
+      bool operator==(const BasicIterator & other) const { return node_ == other.node_; }
+      bool operator!=(const BasicIterator & other) const { return node_ != other.node_; }
+
+    private:
+      List * node_;
     };
 
-    Node* head_;
-    Node* tail_;
+    using iterator = BasicIterator< T >;
+    using const_iterator = BasicIterator< const T >;
 
-    friend class LIter< T >;
-    friend class LCIter< T >;
-  };
+    Bilist(): head_(nullptr), tail_(nullptr) {}
 
-  template< class T >
-  class LIter {
-  public:
-    LIter(typename List< T >::Node* node);
-
-    T& operator*();
-    T* operator->();
-    LIter& operator++();
-    bool operator==(const LIter& other) const;
-    bool operator!=(const LIter& other) const;
-
-  private:
-    typename List< T >::Node* node_;
-  };
-
-  template< class T >
-  class LCIter {
-  public:
-    LCIter(const typename List< T >::Node* node);
-
-    const T& operator*() const;
-    const T* operator->() const;
-    LCIter& operator++();
-    bool operator==(const LCIter& other) const;
-    bool operator!=(const LCIter& other) const;
-
-  private:
-    const typename List< T >::Node* node_;
-  };
-
-  template< class T >
-  List< T >::Node::Node(const T& data, Node* prev, Node* next):
-    data_(data),
-    prev_(prev),
-    next_(next)
-  {}
-
-  template< class T >
-  List< T >::List():
-    head_(nullptr),
-    tail_(nullptr)
-  {}
-
-  template< class T >
-  List< T >::List(const List& other):
-    head_(nullptr),
-    tail_(nullptr)
-  {
-    for (LCIter< T > it = other.begin(); it != other.end(); ++it) {
-      pushBack(*it);
+    Bilist(const Bilist & other): head_(nullptr), tail_(nullptr)
+    {
+      for (const_iterator it = other.begin(); it != other.end(); ++it)
+      {
+        pushBack(*it);
+      }
     }
-  }
 
-  template< class T >
-  List< T >::List(List&& other) noexcept:
-    head_(other.head_),
-    tail_(other.tail_)
-  {
-    other.head_ = nullptr;
-    other.tail_ = nullptr;
-  }
-
-  template< class T >
-  List< T >::~List()
-  {
-    clear();
-  }
-
-  template< class T >
-  List< T >& List< T >::operator=(const List& other)
-  {
-    if (this != &other) {
-      List< T > temp(other);
-      std::swap(head_, temp.head_);
-      std::swap(tail_, temp.tail_);
-    }
-    return *this;
-  }
-
-  template< class T >
-  List< T >& List< T >::operator=(List&& other) noexcept
-  {
-    if (this != &other) {
-      clear();
-      head_ = other.head_;
-      tail_ = other.tail_;
+    Bilist(Bilist && other) noexcept: head_(other.head_), tail_(other.tail_)
+    {
       other.head_ = nullptr;
       other.tail_ = nullptr;
     }
-    return *this;
-  }
 
-  template< class T >
-  void List< T >::pushBack(const T& value)
-  {
-    Node* newNode = new Node(value, tail_, nullptr);
-    if (tail_) {
-      tail_->next_ = newNode;
-    } else {
-      head_ = newNode;
+    ~Bilist() { clear(); }
+
+    Bilist & operator=(const Bilist & other)
+    {
+      if (this != &other)
+      {
+        Bilist temp(other);
+        std::swap(head_, temp.head_);
+        std::swap(tail_, temp.tail_);
+      }
+      return *this;
     }
-    tail_ = newNode;
-  }
 
-  template< class T >
-  void List< T >::pushFront(const T& value)
-  {
-    Node* newNode = new Node(value, nullptr, head_);
-    if (head_) {
-      head_->prev_ = newNode;
-    } else {
+    Bilist & operator=(Bilist && other) noexcept
+    {
+      if (this != &other)
+      {
+        clear();
+        head_ = other.head_;
+        tail_ = other.tail_;
+        other.head_ = nullptr;
+        other.tail_ = nullptr;
+      }
+      return *this;
+    }
+
+    void pushBack(const T & val)
+    {
+      List * newNode = new List(val, tail_, nullptr);
+      if (tail_)
+      {
+        tail_->next = newNode;
+      }
+      else
+      {
+        head_ = newNode;
+      }
       tail_ = newNode;
     }
-    head_ = newNode;
-  }
 
-  template< class T >
-  void List< T >::popFront()
-  {
-    if (head_) {
-      Node* temp = head_;
-      head_ = head_->next_;
-      if (head_) {
-        head_->prev_ = nullptr;
-      } else {
-        tail_ = nullptr;
+    void popFront()
+    {
+      if (head_)
+      {
+        List * temp = head_;
+        head_ = head_->next;
+        if (head_)
+        {
+          head_->prev = nullptr;
+        }
+        else
+        {
+          tail_ = nullptr;
+        }
+        delete temp;
       }
-      delete temp;
     }
-  }
 
-  template< class T >
-  void List< T >::popBack()
-  {
-    if (tail_) {
-      Node* temp = tail_;
-      tail_ = tail_->prev_;
-      if (tail_) {
-        tail_->next_ = nullptr;
-      } else {
-        head_ = nullptr;
+    void clear()
+    {
+      while (!isEmpty())
+      {
+        popFront();
       }
-      delete temp;
     }
-  }
 
-  template< class T >
-  void List< T >::clear()
-  {
-    while (!isEmpty()) {
-      popFront();
-    }
-  }
+    bool isEmpty() const { return head_ == nullptr; }
+    iterator begin() { return iterator(head_); }
+    iterator end() { return iterator(nullptr); }
+    const_iterator begin() const { return const_iterator(head_); }
+    const_iterator end() const { return const_iterator(nullptr); }
 
-  template< class T >
-  bool List< T >::isEmpty() const
-  {
-    return head_ == nullptr;
-  }
+    T & front() { return head_->data; }
+    const T & front() const { return head_->data; }
 
-  template< class T >
-  T& List< T >::front() { return head_->data_; }
-
-  template< class T >
-  const T& List< T >::front() const { return head_->data_; }
-
-  template< class T >
-  T& List< T >::back() { return tail_->data_; }
-
-  template< class T >
-  const T& List< T >::back() const { return tail_->data_; }
-
-  template< class T >
-  LIter< T > List< T >::begin() { return LIter< T >(head_); }
-
-  template< class T >
-  LIter< T > List< T >::end() { return LIter< T >(nullptr); }
-
-  template< class T >
-  LCIter< T > List< T >::begin() const { return LCIter< T >(head_); }
-
-  template< class T >
-  LCIter< T > List< T >::end() const { return LCIter< T >(nullptr); }
-
-  template< class T >
-  LIter< T >::LIter(typename List< T >::Node* node): node_(node) {}
-
-  template< class T >
-  T& LIter< T >::operator*() { return node_->data_; }
-
-  template< class T >
-  T* LIter< T >::operator->() { return &node_->data_; }
-
-  template< class T >
-  LIter< T >& LIter< T >::operator++() {
-    node_ = node_->next_;
-    return *this;
-  }
-
-  template< class T >
-  bool LIter< T >::operator==(const LIter& other) const { return node_ == other.node_; }
-
-  template< class T >
-  bool LIter< T >::operator!=(const LIter& other) const { return node_ != other.node_; }
-
-  template< class T >
-  LCIter< T >::LCIter(const typename List< T >::Node* node): node_(node) {}
-
-  template< class T >
-  const T& LCIter< T >::operator*() const { return node_->data_; }
-
-  template< class T >
-  const T* LCIter< T >::operator->() const { return &node_->data_; }
-
-  template< class T >
-  LCIter< T >& LCIter< T >::operator++() {
-    node_ = node_->next_;
-    return *this;
-  }
-
-  template< class T >
-  bool LCIter< T >::operator==(const LCIter& other) const { return node_ == other.node_; }
-
-  template< class T >
-  bool LCIter< T >::operator!=(const LCIter& other) const { return node_ != other.node_; }
+  private:
+    List * head_;
+    List * tail_;
+  };
 }
 
 #endif

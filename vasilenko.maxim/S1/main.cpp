@@ -1,107 +1,98 @@
 #include <iostream>
 #include <string>
 #include <limits>
+#include <cstddef>
+#include <algorithm>
 #include "list.hpp"
 
-struct NamedList {
+struct NamedList
+{
   std::string name;
-  vasilenko_maxim::List< unsigned long long > numbers;
+  vasilenko_maxim::Bilist< unsigned long long > numbers;
 };
 
 int main()
 {
   using namespace vasilenko_maxim;
-  List< NamedList > allSeqs;
+  Bilist< NamedList > allSeqs;
   std::string name;
 
-  while (std::cin >> name) {
+  while (std::cin >> name)
+  {
     NamedList current;
     current.name = name;
-
-    while (true) {
-      int c = std::cin.peek();
-      if (c == '\n' || c == std::char_traits< char >::eof()) {
-        if (c == '\n') {
-          std::cin.get();
-        }
-        break;
-      }
-      if (std::isspace(c)) {
-        std::cin.get();
-        continue;
-      }
-
+    while (std::cin.peek() != '\n' && std::cin.peek() != EOF)
+    {
       unsigned long long val = 0;
-      if (std::cin >> val) {
+      if (std::cin >> val)
+      {
         current.numbers.pushBack(val);
-      } else {
-        std::cerr << "Overflow error\n";
-        return 1;
+      }
+      else
+      {
+        std::cin.clear();
+        if (std::cin.peek() != EOF) std::cin.ignore();
       }
     }
     allSeqs.pushBack(current);
   }
 
-  if (allSeqs.isEmpty()) {
+  if (allSeqs.isEmpty())
+  {
     std::cout << "0\n";
     return 0;
   }
 
-  bool first = true;
-  for (LIter< NamedList > it = allSeqs.begin(); it != allSeqs.end(); ++it) {
-    if (!first) {
-      std::cout << " ";
-    }
+  for (auto it = allSeqs.begin(); it != allSeqs.end(); )
+  {
     std::cout << it->name;
-    first = false;
+    if (++it != allSeqs.end()) std::cout << " ";
   }
   std::cout << "\n";
 
-  List< unsigned long long > rowSums;
+  Bilist< unsigned long long > sums;
   bool hasData = true;
-  while (hasData) {
+  while (hasData)
+  {
     hasData = false;
     unsigned long long currentSum = 0;
     bool firstInRow = true;
+    bool rowEmpty = true;
 
-    for (LIter< NamedList > it = allSeqs.begin(); it != allSeqs.end(); ++it) {
-      if (!it->numbers.isEmpty()) {
-        if (!firstInRow) {
-          std::cout << " ";
-        }
+    for (auto it = allSeqs.begin(); it != allSeqs.end(); ++it)
+    {
+      if (!it->numbers.isEmpty())
+      {
         unsigned long long val = it->numbers.front();
+        if (!firstInRow) std::cout << " ";
         std::cout << val;
 
-        if (std::numeric_limits< unsigned long long >::max() - currentSum < val) {
+        if (std::numeric_limits< unsigned long long >::max() - currentSum < val)
+        {
           std::cerr << "Overflow error\n";
           return 1;
         }
         currentSum += val;
         it->numbers.popFront();
-        hasData = true;
+        rowEmpty = false;
         firstInRow = false;
       }
+      if (!it->numbers.isEmpty()) hasData = true;
     }
 
-    if (!firstInRow) {
+    if (!rowEmpty)
+    {
       std::cout << "\n";
-      rowSums.pushBack(currentSum);
+      sums.pushBack(currentSum);
     }
   }
 
-  if (rowSums.isEmpty()) {
-    std::cout << "0\n";
-  } else {
-    bool firstSum = true;
-    for (LIter< unsigned long long > sit = rowSums.begin(); sit != rowSums.end(); ++sit) {
-      if (!firstSum) {
-        std::cout << " ";
-      }
-      std::cout << *sit;
-      firstSum = false;
-    }
-    std::cout << "\n";
+  for (auto it = sums.begin(); it != sums.end(); )
+  {
+    std::cout << *it;
+    if (++it != sums.end()) std::cout << " ";
   }
+  std::cout << "\n";
 
   return 0;
 }
