@@ -1,96 +1,103 @@
+#include "BiList.hpp"
 #include <iostream>
 #include <string>
 #include <limits>
-#include <cstddef>
-#include <algorithm>
-#include "list.hpp"
-
-struct NamedList
-{
-  std::string name;
-  vasilenko_maxim::Bilist< unsigned long long > numbers;
-};
+#include <utility>
 
 int main()
 {
   using namespace vasilenko_maxim;
-  Bilist< NamedList > allSeqs;
-  std::string name;
+  BiList< std::pair< std::string, BiList< unsigned long long > > > data;
+  std::string name = "";
 
   while (std::cin >> name)
   {
-    NamedList current;
-    current.name = name;
-    while (std::cin.peek() != '\n' && std::cin.peek() != EOF)
+    BiList< unsigned long long > nums;
+    unsigned long long val = 0;
+    while (std::cin >> val)
     {
-      unsigned long long val = 0;
-      if (std::cin >> val)
-      {
-        current.numbers.pushBack(val);
-      }
-      else
-      {
-        std::cin.clear();
-        if (std::cin.peek() != EOF) std::cin.ignore();
-      }
+      nums.push_back(val);
     }
-    allSeqs.pushBack(current);
+    data.push_back(std::make_pair(name, std::move(nums)));
+    if (!std::cin.eof())
+    {
+      std::cin.clear();
+    }
   }
 
-  if (allSeqs.isEmpty())
+  if (data.empty())
   {
     std::cout << "0\n";
     return 0;
   }
 
-  for (auto it = allSeqs.begin(); it != allSeqs.end(); )
+  for (auto it = data.begin(); it != data.end(); )
   {
-    std::cout << it->name;
-    if (++it != allSeqs.end()) std::cout << " ";
+    std::cout << it->first;
+    if (++it != data.end())
+    {
+      std::cout << " ";
+    }
   }
   std::cout << "\n";
 
-  Bilist< unsigned long long > sums;
-  bool hasData = true;
-  while (hasData)
+  BiList< unsigned long long > sums;
+  bool processing = true;
+  size_t index = 0;
+
+  while (processing)
   {
-    hasData = false;
-    unsigned long long currentSum = 0;
-    bool firstInRow = true;
-    bool rowEmpty = true;
+    processing = false;
+    unsigned long long current_sum = 0;
+    bool first_in_row = true;
+    bool row_has_data = false;
 
-    for (auto it = allSeqs.begin(); it != allSeqs.end(); ++it)
+    for (auto it = data.begin(); it != data.end(); ++it)
     {
-      if (!it->numbers.isEmpty())
+      if (index < it->second.size())
       {
-        unsigned long long val = it->numbers.front();
-        if (!firstInRow) std::cout << " ";
-        std::cout << val;
-
-        if (std::numeric_limits< unsigned long long >::max() - currentSum < val)
+        auto inner_it = it->second.begin();
+        for (size_t i = 0; i < index; ++i)
         {
-          std::cerr << "Overflow error\n";
+          ++inner_it;
+        }
+
+        if (!first_in_row)
+        {
+          std::cout << " ";
+        }
+        std::cout << *inner_it;
+
+        if (row_has_data && (std::numeric_limits< unsigned long long >::max() - current_sum < *inner_it))
+        {
+          std::cerr << "Overflow\n";
           return 1;
         }
-        currentSum += val;
-        it->numbers.popFront();
-        rowEmpty = false;
-        firstInRow = false;
+        current_sum += *inner_it;
+        row_has_data = true;
+        first_in_row = false;
       }
-      if (!it->numbers.isEmpty()) hasData = true;
+      if (index + 1 < it->second.size())
+      {
+        processing = true;
+      }
     }
 
-    if (!rowEmpty)
+    if (row_has_data)
     {
       std::cout << "\n";
-      sums.pushBack(currentSum);
+      sums.push_back(current_sum);
     }
+    index++;
   }
 
   for (auto it = sums.begin(); it != sums.end(); )
   {
     std::cout << *it;
-    if (++it != sums.end()) std::cout << " ";
+    if (++it != sums.end())
+    {
+      std::cout << " ";
+    }
   }
   std::cout << "\n";
 
