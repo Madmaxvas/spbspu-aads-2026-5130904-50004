@@ -34,10 +34,7 @@ int main()
   for (auto it = data.begin(); it != data.end(); )
   {
     std::cout << it->first;
-    if (++it != data.end())
-    {
-      std::cout << " ";
-    }
+    if (++it != data.end()) std::cout << " ";
   }
   std::cout << "\n";
 
@@ -57,15 +54,9 @@ int main()
       if (index < it->second.size())
       {
         auto inner_it = it->second.begin();
-        for (size_t i = 0; i < index; ++i)
-        {
-          ++inner_it;
-        }
+        for (size_t i = 0; i < index; ++i) ++inner_it;
 
-        if (!first_in_row)
-        {
-          std::cout << " ";
-        }
+        if (!first_in_row) std::cout << " ";
         std::cout << *inner_it;
 
         if (row_has_data && (std::numeric_limits< unsigned long long >::max() - current_sum < *inner_it))
@@ -77,10 +68,7 @@ int main()
         row_has_data = true;
         first_in_row = false;
       }
-      if (index + 1 < it->second.size())
-      {
-        processing = true;
-      }
+      if (index + 1 < it->second.size()) processing = true;
     }
 
     if (row_has_data)
@@ -94,12 +82,10 @@ int main()
   for (auto it = sums.begin(); it != sums.end(); )
   {
     std::cout << *it;
-    if (++it != sums.end())
-    {
-      std::cout << " ";
-    }
+    if (++it != sums.end()) std::cout << " ";
   }
   std::cout << "\n";
 
   return 0;
 }
+#endif
