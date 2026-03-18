@@ -1,5 +1,5 @@
-#ifndef LIST_HPP
-#define LIST_HPP
+#ifndef BILIST_HPP
+#define BILIST_HPP
 
 #include <cstddef>
 #include <iterator>
@@ -8,7 +8,7 @@
 namespace vasilenko_maxim {
 
   template< class T >
-  class List;
+  class BiList;
 
   namespace detail {
 
@@ -30,7 +30,7 @@ namespace vasilenko_maxim {
 
   template< class T >
   class LIter {
-    friend class List< T >;
+    friend class BiList< T >;
   public:
     using iterator_category = std::bidirectional_iterator_tag;
     using value_type = T;
@@ -100,7 +100,7 @@ namespace vasilenko_maxim {
 
   template< class T >
   class LCIter {
-    friend class List< T >;
+    friend class BiList< T >;
   public:
     using iterator_category = std::bidirectional_iterator_tag;
     using value_type = const T;
@@ -169,19 +169,19 @@ namespace vasilenko_maxim {
   };
 
   template< class T >
-  class List {
+  class BiList {
   public:
     using iterator = LIter< T >;
     using const_iterator = LCIter< T >;
 
-    List() :
+    BiList() :
       head_(nullptr),
       tail_(nullptr),
       size_(0)
     {
     }
 
-    List(const List& other) :
+    BiList(const BiList& other) :
       head_(nullptr),
       tail_(nullptr),
       size_(0)
@@ -196,7 +196,7 @@ namespace vasilenko_maxim {
       }
     }
 
-    List(List&& other) noexcept :
+    BiList(BiList&& other) noexcept :
       head_(other.head_),
       tail_(other.tail_),
       size_(other.size_)
@@ -206,15 +206,15 @@ namespace vasilenko_maxim {
       other.size_ = 0;
     }
 
-    ~List()
+    ~BiList()
     {
       clear();
     }
 
-    List& operator=(const List& other)
+    BiList& operator=(const BiList& other)
     {
       if (this != &other) {
-        List tmp(other);
+        BiList tmp(other);
         std::swap(head_, tmp.head_);
         std::swap(tail_, tmp.tail_);
         std::swap(size_, tmp.size_);
@@ -222,7 +222,7 @@ namespace vasilenko_maxim {
       return *this;
     }
 
-    List& operator=(List&& other) noexcept
+    BiList& operator=(BiList&& other) noexcept
     {
       if (this != &other) {
         clear();

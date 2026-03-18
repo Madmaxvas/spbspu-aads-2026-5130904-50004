@@ -1,4 +1,4 @@
-#include "list.hpp"
+#include "BiList.hpp"
 #include <iostream>
 #include <limits>
 #include <string>
@@ -6,12 +6,12 @@
 
 int main()
 {
-  using ListType = vasilenko_maxim::List< std::pair< std::string, vasilenko_maxim::List< unsigned long long > > >;
+  using ListType = vasilenko_maxim::BiList< std::pair< std::string, vasilenko_maxim::BiList< unsigned long long > > >;
   ListType data;
   std::string name = "";
 
   while (std::cin >> name) {
-    vasilenko_maxim::List< unsigned long long > seq;
+    vasilenko_maxim::BiList< unsigned long long > seq;
     while (true) {
       int c = std::cin.get();
       while (c == ' ' || c == '\t' || c == '\r') {
@@ -49,13 +49,13 @@ int main()
   std::cout << "\n";
 
   using IterPair = std::pair< vasilenko_maxim::LIter< unsigned long long >, vasilenko_maxim::LIter< unsigned long long > >;
-  vasilenko_maxim::List< IterPair > trackers;
+  vasilenko_maxim::BiList< IterPair > trackers;
 
   for (auto it = data.begin(); it != data.end(); ++it) {
     trackers.pushBack(std::make_pair(it->second.begin(), it->second.end()));
   }
 
-  vasilenko_maxim::List< unsigned long long > sums;
+  vasilenko_maxim::BiList< unsigned long long > sums;
   bool processing = true;
 
   while (processing) {
