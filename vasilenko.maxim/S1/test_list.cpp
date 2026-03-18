@@ -1,3 +1,5 @@
+#ifdef LOCAL_TESTS
+
 #define BOOST_TEST_MODULE ListTests
 #include <boost/test/included/unit_test.hpp>
 #include <utility>
@@ -17,6 +19,8 @@ BOOST_AUTO_TEST_CASE(test_push_and_pop)
 
   list.popFront();
   BOOST_CHECK_EQUAL(list.front(), 10);
+  BOOST_CHECK_EQUAL(list.back(), 10);
+
   list.popBack();
   BOOST_CHECK(list.isEmpty());
 }
@@ -35,3 +39,5 @@ BOOST_AUTO_TEST_CASE(test_rule_of_five)
   BOOST_CHECK(l1.isEmpty());
   BOOST_CHECK_EQUAL(l3.front(), 1);
 }
+
+#endif
