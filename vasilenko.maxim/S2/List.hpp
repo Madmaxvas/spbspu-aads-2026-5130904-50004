@@ -61,11 +61,18 @@ namespace vasilenko {
     struct Node {
       T data_;
       std::unique_ptr<Node> next_;
-      Node(const T& data) : data_(data), next_(nullptr) {}
+
+      Node(const T& data)
+        : data_(data),
+          next_(nullptr)
+      {
+      }
     };
+
     std::unique_ptr<Node> head_;
     Node* tail_ = nullptr;
   };
 
 }
+
 #endif

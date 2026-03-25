@@ -1,76 +1,165 @@
 #ifndef EVALUATOR_HPP
 #define EVALUATOR_HPP
+
 #include <string>
 #include <sstream>
+#include <stdexcept>
+
 #include "Stack.hpp"
 #include "Queue.hpp"
 
 namespace vasilenko {
-  bool isOperator(const std::string& t) { return t=="+"||t=="-"||t=="*"||t=="/"||t=="%"||t=="^"; }
-  int getPrecedence(const std::string& op) {
-    if (op == "^") return 3;
-    if (op == "*" || op == "/" || op == "%") return 2;
-    if (op == "+" || op == "-") return 1;
+
+  long long computePower(long long base, long long exponent)
+  {
+    if (exponent < 0) {
+      throw std::invalid_argument("Negative exponent is not supported");
+    }
+    long long result = 1;
+    for (long long i = 0; i < exponent; ++i) {
+      result *= base;
+    }
+    return result;
+  }
+
+  bool isOperator(const std::string& token)
+  {
+    return token == "+" || token == "-" || token == "*" || token == "/" || token == "%" || token == "^";
+  }
+
+  int getPrecedence(const std::string& op)
+  {
+    if (op == "^") {
+      return 3;
+    }
+    if (op == "*" || op == "/" || op == "%") {
+      return 2;
+    }
+    if (op == "+" || op == "-") {
+      return 1;
+    }
     return 0;
   }
-  bool isRightAssociative(const std::string& op) { return op == "^"; }
 
-  long long computePower(long long b, long long e)
+  bool isRightAssociative(const std::string& op)
   {
-    if (e < 0) throw std::invalid_argument("Negative exponent");
-    long long r = 1;
-    for (long long i = 0; i < e; ++i) r *= b;
-    return r;
+    return op == "^";
   }
 
-  long long evaluatePostfix(Queue<std::string>& q)
+  Queue<std::string> convertToPostfix(const std::string& expression)
   {
-    Stack<long long> s;
-    while (!q.isEmpty()) {
-      const std::string t = q.getFront(); q.pop();
-      if (isOperator(t)) {
-        const long long r = s.getTop(); s.pop();
-        const long long l = s.getTop(); s.pop();
-        if (t == "+") s.push(l + r);
-        else if (t == "-") s.push(l - r);
-        else if (t == "*") s.push(l * r);
-        else if (t == "/") s.push(l / r);
-        else if (t == "%") s.push(l % r);
-        else if (t == "^") s.push(computePower(l, r));
-      } else s.push(std::stoll(t));
-    }
-    return s.getTop();
-  }
+    Queue<std::string> outputQueue;
+    Stack<std::string> operatorStack;
+    std::istringstream stream(expression);
+    std::string token;
 
-  long long evaluateExpression(const std::string& e)
-  {
-    Queue<std::string> p = convertToPostfix(e);
-    return evaluatePostfix(p);
-  }
+    while (stream >> token) {
+      if (isOperator(token)) {
+        while (!operatorStack.isEmpty() && isOperator(operatorStack.getTop())) {
+          const std::string topOp = operatorStack.getTop();
+          const int tokenPrec = getPrecedence(token);
+          const int topPrec = getPrecedence(topOp);
 
-  Queue<std::string> convertToPostfix(const std::string& expr)
-  {
-    Queue<std::string> out;
-    Stack<std::string> ops;
-    std::istringstream stream(expr);
-    std::string t;
-    while (stream >> t) {
-      if (isOperator(t)) {
-        while (!ops.isEmpty() && isOperator(ops.getTop())) {
-          if (getPrecedence(ops.getTop()) > getPrecedence(t) ||
-             (getPrecedence(ops.getTop()) == getPrecedence(t) && !isRightAssociative(t))) {
-            out.push(ops.getTop()); ops.pop();
-          } else break;
+          if (topPrec > tokenPrec || (topPrec == tokenPrec && !isRightAssociative(token))) {
+            outputQueue.push(topOp);
+            operatorStack.pop();
+          } else {
+            break;
+          }
         }
-        ops.push(t);
-      } else if (t == "(") ops.push(t);
-      else if (t == ")") {
-        while (!ops.isEmpty() && ops.getTop() != "(") { out.push(ops.getTop()); ops.pop(); }
-        ops.pop();
-      } else out.push(t);
+        operatorStack.push(token);
+      } else if (token == "(") {
+        operatorStack.push(token);
+      } else if (token == ")") {
+        bool foundLeftParen = false;
+        while (!operatorStack.isEmpty()) {
+          const std::string topToken = operatorStack.getTop();
+          operatorStack.pop();
+          if (topToken == "(") {
+            foundLeftParen = true;
+            break;
+          }
+          outputQueue.push(topToken);
+        }
+        if (!foundLeftParen) {
+          throw std::invalid_argument("Mismatched parentheses");
+        }
+      } else {
+        outputQueue.push(token);
+      }
     }
-    while (!ops.isEmpty()) { out.push(ops.getTop()); ops.pop(); }
-    return out;
+
+    while (!operatorStack.isEmpty()) {
+      const std::string topToken = operatorStack.getTop();
+      operatorStack.pop();
+      if (topToken == "(" || topToken == ")") {
+        throw std::invalid_argument("Mismatched parentheses");
+      }
+      outputQueue.push(topToken);
+    }
+    return outputQueue;
   }
+
+  long long evaluatePostfix(Queue<std::string>& postfixQueue)
+  {
+    Stack<long long> evaluationStack;
+
+    while (!postfixQueue.isEmpty()) {
+      const std::string token = postfixQueue.getFront();
+      postfixQueue.pop();
+
+      if (isOperator(token)) {
+        if (evaluationStack.isEmpty()) {
+          throw std::invalid_argument("Invalid expression");
+        }
+        const long long rightOperand = evaluationStack.getTop();
+        evaluationStack.pop();
+
+        if (evaluationStack.isEmpty()) {
+          throw std::invalid_argument("Invalid expression");
+        }
+        const long long leftOperand = evaluationStack.getTop();
+        evaluationStack.pop();
+
+        long long result = 0;
+        if (token == "+") {
+          result = leftOperand + rightOperand;
+        } else if (token == "-") {
+          result = leftOperand - rightOperand;
+        } else if (token == "*") {
+          result = leftOperand * rightOperand;
+        } else if (token == "/") {
+          result = leftOperand / rightOperand;
+        } else if (token == "%") {
+          result = leftOperand % rightOperand;
+        } else if (token == "^") {
+          result = computePower(leftOperand, rightOperand);
+        }
+
+        evaluationStack.push(result);
+      } else {
+        evaluationStack.push(std::stoll(token));
+      }
+    }
+
+    if (evaluationStack.isEmpty()) {
+      throw std::invalid_argument("Empty expression");
+    }
+    const long long finalResult = evaluationStack.getTop();
+    evaluationStack.pop();
+
+    if (!evaluationStack.isEmpty()) {
+      throw std::invalid_argument("Invalid expression");
+    }
+    return finalResult;
+  }
+
+  long long evaluateExpression(const std::string& expression)
+  {
+    Queue<std::string> postfix = convertToPostfix(expression);
+    return evaluatePostfix(postfix);
+  }
+
 }
+
 #endif
