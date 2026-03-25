@@ -15,6 +15,39 @@ namespace vasilenko {
   }
   bool isRightAssociative(const std::string& op) { return op == "^"; }
 
+  long long computePower(long long b, long long e)
+  {
+    if (e < 0) throw std::invalid_argument("Negative exponent");
+    long long r = 1;
+    for (long long i = 0; i < e; ++i) r *= b;
+    return r;
+  }
+
+  long long evaluatePostfix(Queue<std::string>& q)
+  {
+    Stack<long long> s;
+    while (!q.isEmpty()) {
+      const std::string t = q.getFront(); q.pop();
+      if (isOperator(t)) {
+        const long long r = s.getTop(); s.pop();
+        const long long l = s.getTop(); s.pop();
+        if (t == "+") s.push(l + r);
+        else if (t == "-") s.push(l - r);
+        else if (t == "*") s.push(l * r);
+        else if (t == "/") s.push(l / r);
+        else if (t == "%") s.push(l % r);
+        else if (t == "^") s.push(computePower(l, r));
+      } else s.push(std::stoll(t));
+    }
+    return s.getTop();
+  }
+
+  long long evaluateExpression(const std::string& e)
+  {
+    Queue<std::string> p = convertToPostfix(e);
+    return evaluatePostfix(p);
+  }
+
   Queue<std::string> convertToPostfix(const std::string& expr)
   {
     Queue<std::string> out;
