@@ -1,5 +1,6 @@
 #include "BiList.hpp"
 #include <utility>
+#include <string>
 
 template< class T >
 vasilenko_maxim::BiList< T >::BiList():
@@ -204,3 +205,8 @@ typename vasilenko_maxim::BiList< T >::const_iterator vasilenko_maxim::BiList< T
 {
   return const_iterator(nullptr, tail_);
 }
+
+template class vasilenko_maxim::BiList< int >;
+template class vasilenko_maxim::BiList< unsigned long long >;
+template class vasilenko_maxim::BiList< std::pair< std::string, vasilenko_maxim::BiList< unsigned long long > > >;
+template class vasilenko_maxim::BiList< std::pair< vasilenko_maxim::LIter< unsigned long long >, vasilenko_maxim::LIter< unsigned long long > > >;
