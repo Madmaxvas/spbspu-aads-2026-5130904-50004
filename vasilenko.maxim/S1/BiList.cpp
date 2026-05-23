@@ -208,5 +208,17 @@ typename vasilenko_maxim::BiList< T >::const_iterator vasilenko_maxim::BiList< T
 
 template class vasilenko_maxim::BiList< int >;
 template class vasilenko_maxim::BiList< unsigned long long >;
-template class vasilenko_maxim::BiList< std::pair< std::string, vasilenko_maxim::BiList< unsigned long long > > >;
-template class vasilenko_maxim::BiList< std::pair< vasilenko_maxim::LIter< unsigned long long >, vasilenko_maxim::LIter< unsigned long long > > >;
+
+template class vasilenko_maxim::BiList<
+  std::pair<
+    std::string,
+    vasilenko_maxim::BiList< unsigned long long >
+  >
+>;
+
+template class vasilenko_maxim::BiList<
+  std::pair<
+    vasilenko_maxim::LIter< unsigned long long >,
+    vasilenko_maxim::LIter< unsigned long long >
+  >
+>;
