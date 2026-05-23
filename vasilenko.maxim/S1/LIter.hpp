@@ -10,21 +10,14 @@ namespace vasilenko_maxim
   class BiList;
 
   template< class T >
-  class LIter
+  class LIter: public std::iterator< std::bidirectional_iterator_tag, T >
   {
     friend class BiList< T >;
   public:
-    using iterator_category = std::bidirectional_iterator_tag;
-    using value_type = T;
-    using difference_type = std::ptrdiff_t;
-    using pointer = T*;
-    using reference = T&;
-
     LIter():
       node_(nullptr),
       tail_(nullptr)
-    {
-    }
+    {}
 
     reference operator*() const
     {
@@ -76,8 +69,7 @@ namespace vasilenko_maxim
     LIter(detail::ListNode< T >* node, detail::ListNode< T >* tail):
       node_(node),
       tail_(tail)
-    {
-    }
+    {}
 
     detail::ListNode< T >* node_;
     detail::ListNode< T >* tail_;

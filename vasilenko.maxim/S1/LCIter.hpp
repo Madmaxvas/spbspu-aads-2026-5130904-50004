@@ -10,21 +10,14 @@ namespace vasilenko_maxim
   class BiList;
 
   template< class T >
-  class LCIter
+  class LCIter: public std::iterator< std::bidirectional_iterator_tag, T, std::ptrdiff_t, const T*, const T& >
   {
     friend class BiList< T >;
   public:
-    using iterator_category = std::bidirectional_iterator_tag;
-    using value_type = const T;
-    using difference_type = std::ptrdiff_t;
-    using pointer = const T*;
-    using reference = const T&;
-
     LCIter():
       node_(nullptr),
       tail_(nullptr)
-    {
-    }
+    {}
 
     reference operator*() const
     {
@@ -76,8 +69,7 @@ namespace vasilenko_maxim
     LCIter(const detail::ListNode< T >* node, const detail::ListNode< T >* tail):
       node_(node),
       tail_(tail)
-    {
-    }
+    {}
 
     const detail::ListNode< T >* node_;
     const detail::ListNode< T >* tail_;

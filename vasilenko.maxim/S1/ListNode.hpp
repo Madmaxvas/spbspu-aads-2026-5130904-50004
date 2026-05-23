@@ -16,8 +16,7 @@ namespace vasilenko_maxim
         value_(val),
         next_(next),
         prev_(prev)
-      {
-      }
+      {}
     };
   }
 }
