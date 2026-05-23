@@ -19,12 +19,12 @@ namespace vasilenko_maxim
       tail_(nullptr)
     {}
 
-    reference operator*() const
+    const T& operator*() const
     {
       return node_->value_;
     }
 
-    pointer operator->() const
+    const T* operator->() const
     {
       return &(node_->value_);
     }
