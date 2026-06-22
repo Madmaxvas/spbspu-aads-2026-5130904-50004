@@ -2,7 +2,7 @@
 #include <boost/test/included/unit_test.hpp>
 #include "BiList.hpp"
 
-using namespace vasilenko_maxim;
+using namespace vasilenko;
 
 BOOST_AUTO_TEST_CASE(testListBasics)
 {
