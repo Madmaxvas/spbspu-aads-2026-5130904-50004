@@ -3,10 +3,10 @@
 #include <limits>
 #include <string>
 #include <utility>
-#include <sstream>
 #include <stdexcept>
+#include <cctype>
 
-namespace
+namespace vasilenko
 {
   unsigned long long safeAdd(unsigned long long a, unsigned long long b)
   {
@@ -21,27 +21,58 @@ namespace
 
 int main()
 {
-  using SeqType = vasilenko_maxim::BiList< unsigned long long >;
-  using EntryType = std::pair< std::string, SeqType >;
-  using ListType = vasilenko_maxim::BiList< EntryType >;
+  using SeqType = vasilenko::BiList< unsigned long long >;
+
+  struct EntryType
+  {
+    std::string name;
+    SeqType seq;
+  };
+
+  using ListType = vasilenko::BiList< EntryType >;
 
   ListType data;
-  std::string line;
+  std::string name;
 
-  while (std::getline(std::cin, line))
+  while (std::cin >> name)
   {
-    std::istringstream iss(line);
-    std::string name;
-    if (iss >> name)
+    SeqType seq;
+    while (true)
     {
-      SeqType seq;
-      unsigned long long val = 0;
-      while (iss >> val)
+      int c = std::cin.get();
+      if (c == '\n' || c == std::char_traits< char >::eof())
       {
-        seq.pushBack(val);
+        break;
       }
-      data.pushBack(std::make_pair(name, std::move(seq)));
+
+      if (std::isdigit(c))
+      {
+        unsigned long long val = c - '0';
+        while (true)
+        {
+          c = std::cin.get();
+          if (c != std::char_traits< char >::eof() && std::isdigit(c))
+          {
+            val = val * 10 + (c - '0');
+          }
+          else
+          {
+            break;
+          }
+        }
+        seq.pushBack(val);
+
+        if (c == '\n' || c == std::char_traits< char >::eof())
+        {
+          break;
+        }
+      }
     }
+
+    EntryType entry;
+    entry.name = name;
+    entry.seq = std::move(seq);
+    data.pushBack(std::move(entry));
   }
 
   if (data.empty())
@@ -51,21 +82,30 @@ int main()
   }
 
   auto itData = data.begin();
-  std::cout << itData->first;
+  std::cout << itData->name;
   ++itData;
   for (; itData != data.end(); ++itData)
   {
-    std::cout << " " << itData->first;
+    std::cout << " " << itData->name;
   }
   std::cout << "\n";
 
-  using ValueIter = vasilenko_maxim::LIter< unsigned long long >;
-  using IterPair = std::pair< ValueIter, ValueIter >;
-  vasilenko_maxim::BiList< IterPair > trackers;
+  using ValueIter = vasilenko::LIter< unsigned long long >;
+
+  struct Tracker
+  {
+    ValueIter current;
+    ValueIter end;
+  };
+
+  vasilenko::BiList< Tracker > trackers;
 
   for (auto it = data.begin(); it != data.end(); ++it)
   {
-    trackers.pushBack(std::make_pair(it->second.begin(), it->second.end()));
+    Tracker tr;
+    tr.current = it->seq.begin();
+    tr.end = it->seq.end();
+    trackers.pushBack(tr);
   }
 
   SeqType sums;
@@ -73,7 +113,7 @@ int main()
   while (true)
   {
     auto it = trackers.begin();
-    while (it != trackers.end() && it->first == it->second)
+    while (it != trackers.end() && it->current == it->end)
     {
       ++it;
     }
@@ -86,20 +126,20 @@ int main()
     unsigned long long currentSum = 0;
     try
     {
-      unsigned long long val = *(it->first);
+      unsigned long long val = *(it->current);
       std::cout << val;
       currentSum = val;
-      ++(it->first);
+      ++(it->current);
       ++it;
 
       for (; it != trackers.end(); ++it)
       {
-        if (it->first != it->second)
+        if (it->current != it->end)
         {
-          val = *(it->first);
+          val = *(it->current);
           std::cout << " " << val;
-          currentSum = safeAdd(currentSum, val);
-          ++(it->first);
+          currentSum = vasilenko::safeAdd(currentSum, val);
+          ++(it->current);
         }
       }
     }

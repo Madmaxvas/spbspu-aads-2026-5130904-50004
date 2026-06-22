@@ -2,29 +2,36 @@
 #define LITER_HPP
 
 #include <iterator>
+#include <cstddef>
 #include "ListNode.hpp"
 
-namespace vasilenko_maxim
+namespace vasilenko
 {
   template< class T >
   class BiList;
 
   template< class T >
-  class LIter: public std::iterator< std::bidirectional_iterator_tag, T >
+  class LIter
   {
     friend class BiList< T >;
   public:
+    using iterator_category = std::bidirectional_iterator_tag;
+    using value_type = T;
+    using difference_type = std::ptrdiff_t;
+    using pointer = T*;
+    using reference = T&;
+
     LIter():
       node_(nullptr),
       tail_(nullptr)
     {}
 
-    T& operator*() const
+    reference operator*() const
     {
       return node_->value_;
     }
 
-    T* operator->() const
+    pointer operator->() const
     {
       return &(node_->value_);
     }
@@ -66,13 +73,13 @@ namespace vasilenko_maxim
     }
 
   private:
-    LIter(detail::ListNode< T >* node, detail::ListNode< T >* tail):
+    LIter(ListNode< T >* node, ListNode< T >* tail):
       node_(node),
       tail_(tail)
     {}
 
-    detail::ListNode< T >* node_;
-    detail::ListNode< T >* tail_;
+    ListNode< T >* node_;
+    ListNode< T >* tail_;
   };
 }
 

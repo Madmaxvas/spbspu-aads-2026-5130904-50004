@@ -2,29 +2,36 @@
 #define LCITER_HPP
 
 #include <iterator>
+#include <cstddef>
 #include "ListNode.hpp"
 
-namespace vasilenko_maxim
+namespace vasilenko
 {
   template< class T >
   class BiList;
 
   template< class T >
-  class LCIter: public std::iterator< std::bidirectional_iterator_tag, T, std::ptrdiff_t, const T*, const T& >
+  class LCIter
   {
     friend class BiList< T >;
   public:
+    using iterator_category = std::bidirectional_iterator_tag;
+    using value_type = T;
+    using difference_type = std::ptrdiff_t;
+    using pointer = const T*;
+    using reference = const T&;
+
     LCIter():
       node_(nullptr),
       tail_(nullptr)
     {}
 
-    const T& operator*() const
+    reference operator*() const
     {
       return node_->value_;
     }
 
-    const T* operator->() const
+    pointer operator->() const
     {
       return &(node_->value_);
     }
@@ -66,13 +73,13 @@ namespace vasilenko_maxim
     }
 
   private:
-    LCIter(const detail::ListNode< T >* node, const detail::ListNode< T >* tail):
+    LCIter(const ListNode< T >* node, const ListNode< T >* tail):
       node_(node),
       tail_(tail)
     {}
 
-    const detail::ListNode< T >* node_;
-    const detail::ListNode< T >* tail_;
+    const ListNode< T >* node_;
+    const ListNode< T >* tail_;
   };
 }
 
