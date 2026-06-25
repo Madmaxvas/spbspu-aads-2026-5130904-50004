@@ -5,14 +5,14 @@
 #include "Stack.hpp"
 #include "Evaluator.hpp"
 
-int main(int argc, char* argv[])
+int main(int argc, char * argv[])
 {
   if (argc > 2) {
     std::cerr << "Invalid arguments\n";
     return 1;
   }
 
-  std::istream* inputStream = &std::cin;
+  std::istream * inputStream = &std::cin;
   std::ifstream fileStream;
 
   if (argc == 2) {
@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
     inputStream = &fileStream;
   }
 
-  vasilenko::Stack<long long> finalResults;
+  vasilenko::Stack< long long > finalResults;
   std::string line;
 
   try {
@@ -37,18 +37,17 @@ int main(int argc, char* argv[])
       finalResults.push(result);
     }
 
-    bool isFirst = true;
-    while (!finalResults.isEmpty()) {
-      if (!isFirst) {
-        std::cout << " ";
-      }
-      std::cout << finalResults.getTop();
+    if (!finalResults.empty()) {
+      std::cout << finalResults.top();
       finalResults.pop();
-      isFirst = false;
+    }
+    while (!finalResults.empty()) {
+      std::cout << " " << finalResults.top();
+      finalResults.pop();
     }
     std::cout << "\n";
 
-  } catch (const std::exception& e) {
+  } catch (const std::exception & e) {
     std::cerr << e.what() << "\n";
     return 2;
   }

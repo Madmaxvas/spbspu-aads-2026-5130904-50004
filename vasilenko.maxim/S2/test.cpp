@@ -6,36 +6,36 @@
 
 void testStack()
 {
-  vasilenko::Stack<int> stackObject;
-  assert(stackObject.isEmpty());
+  vasilenko::Stack< int > stackObject;
+  assert(stackObject.empty());
 
   stackObject.push(10);
   stackObject.push(20);
-  assert(!stackObject.isEmpty());
-  assert(stackObject.getTop() == 20);
+  assert(!stackObject.empty());
+  assert(stackObject.top() == 20);
 
   stackObject.pop();
-  assert(stackObject.getTop() == 10);
+  assert(stackObject.top() == 10);
 
   stackObject.pop();
-  assert(stackObject.isEmpty());
+  assert(stackObject.empty());
 }
 
 void testQueue()
 {
-  vasilenko::Queue<int> queueObject;
-  assert(queueObject.isEmpty());
+  vasilenko::Queue< int > queueObject;
+  assert(queueObject.empty());
 
   queueObject.push(10);
   queueObject.push(20);
-  assert(!queueObject.isEmpty());
-  assert(queueObject.getFront() == 10);
+  assert(!queueObject.empty());
+  assert(queueObject.front() == 10);
 
   queueObject.pop();
-  assert(queueObject.getFront() == 20);
+  assert(queueObject.front() == 20);
 
   queueObject.pop();
-  assert(queueObject.isEmpty());
+  assert(queueObject.empty());
 }
 
 void testExponentiation()
