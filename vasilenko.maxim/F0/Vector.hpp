@@ -112,6 +112,15 @@ namespace vasilenko {
       size_ = count;
     }
 
+    template<typename InputIt>
+    void assign(InputIt first, InputIt last)
+    {
+      clear();
+      for (auto it = first; it != last; ++it) {
+        push_back(*it);
+      }
+    }
+
     void push_back(const T& value)
     {
       if (size_ == capacity_) {
@@ -136,6 +145,21 @@ namespace vasilenko {
         --size_;
         std::destroy_at(&data_[size_]);
       }
+    }
+
+    iterator erase(const_iterator first, const_iterator last)
+    {
+      std::size_t startIndex = first - cbegin();
+      std::size_t count = last - first;
+
+      for (std::size_t i = startIndex; i < size_ - count; ++i) {
+        data_[i] = std::move(data_[i + count]);
+      }
+      for (std::size_t i = size_ - count; i < size_; ++i) {
+        std::destroy_at(&data_[i]);
+      }
+      size_ -= count;
+      return begin() + startIndex;
     }
 
     void reserve(std::size_t newCapacity)
