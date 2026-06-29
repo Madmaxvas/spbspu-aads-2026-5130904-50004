@@ -9,7 +9,6 @@
 
 namespace vasilenko {
   namespace detail {
-
     struct BoundingBox {
       int minX = 0;
       int minY = 0;
@@ -47,19 +46,18 @@ namespace vasilenko {
       bool isLeaf = true;
       BoundingBox box;
       Vector<Location> locations;
-      Vector<std::shared_ptr<RTreeNode>> children;
+      Vector<std::unique_ptr<RTreeNode>> children;
     };
-
   }
 
   class RTree {
   private:
     static const int MAX_ENTRIES = 4;
-    std::shared_ptr<detail::RTreeNode> root_;
+    std::unique_ptr<detail::RTreeNode> root_;
 
-    void updateBoundingBox(std::shared_ptr<detail::RTreeNode> node);
-    std::shared_ptr<detail::RTreeNode> chooseLeaf(std::shared_ptr<detail::RTreeNode> node, const Location& loc);
-    void splitNode(std::shared_ptr<detail::RTreeNode> node, std::shared_ptr<detail::RTreeNode> parent);
+    void updateBoundingBox(detail::RTreeNode* node);
+    detail::RTreeNode* chooseLeaf(detail::RTreeNode* node, const Location& loc);
+    void splitNode(detail::RTreeNode* node, detail::RTreeNode* parent);
 
   public:
     using iterator = detail::RTreeIterator;
@@ -69,14 +67,13 @@ namespace vasilenko {
     void insert(const Location& loc);
     Vector<Location*> findIntersections(int x, int y);
 
-    iterator begin() { return iterator(root_, false); }
-    iterator end() { return iterator(root_, true); }
-    const_iterator begin() const { return const_iterator(root_, false); }
-    const_iterator end() const { return const_iterator(root_, true); }
-    const_iterator cbegin() const { return const_iterator(root_, false); }
-    const_iterator cend() const { return const_iterator(root_, true); }
+    iterator begin() { return iterator(root_.get(), false); }
+    iterator end() { return iterator(root_.get(), true); }
+    const_iterator begin() const { return const_iterator(root_.get(), false); }
+    const_iterator end() const { return const_iterator(root_.get(), true); }
+    const_iterator cbegin() const { return const_iterator(root_.get(), false); }
+    const_iterator cend() const { return const_iterator(root_.get(), true); }
   };
-
 }
 
 #endif

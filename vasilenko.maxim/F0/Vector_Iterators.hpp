@@ -51,9 +51,20 @@ namespace vasilenko {
         return tmp;
       }
 
-      VectorIterator operator+(difference_type n) const { return VectorIterator(ptr_ + n); }
-      VectorIterator operator-(difference_type n) const { return VectorIterator(ptr_ - n); }
-      difference_type operator-(const VectorIterator& other) const { return ptr_ - other.ptr_; }
+      VectorIterator operator+(difference_type n) const
+      {
+        return VectorIterator(ptr_ + n);
+      }
+
+      VectorIterator operator-(difference_type n) const
+      {
+        return VectorIterator(ptr_ - n);
+      }
+
+      difference_type operator-(const VectorIterator& other) const
+      {
+        return ptr_ - other.ptr_;
+      }
 
       bool operator==(const VectorIterator& other) const { return ptr_ == other.ptr_; }
       bool operator!=(const VectorIterator& other) const { return ptr_ != other.ptr_; }
@@ -104,9 +115,20 @@ namespace vasilenko {
         return tmp;
       }
 
-      VectorConstIterator operator+(difference_type n) const { return VectorConstIterator(ptr_ + n); }
-      VectorConstIterator operator-(difference_type n) const { return VectorConstIterator(ptr_ - n); }
-      difference_type operator-(const VectorConstIterator& other) const { return ptr_ - other.ptr_; }
+      VectorConstIterator operator+(difference_type n) const
+      {
+        return VectorConstIterator(ptr_ + n);
+      }
+
+      VectorConstIterator operator-(difference_type n) const
+      {
+        return VectorConstIterator(ptr_ - n);
+      }
+
+      difference_type operator-(const VectorConstIterator& other) const
+      {
+        return ptr_ - other.ptr_;
+      }
 
       bool operator==(const VectorConstIterator& other) const { return ptr_ == other.ptr_; }
       bool operator!=(const VectorConstIterator& other) const { return ptr_ != other.ptr_; }

@@ -5,25 +5,23 @@
 #include <string>
 
 namespace vasilenko {
-
   struct Task {
     std::string id;
     int x;
     int y;
     bool isDone;
     Vector<std::string> parentLocations;
-
-    bool operator==(const Task& other) const
-    {
-      return id == other.id;
-    }
-
-    bool operator!=(const Task& other) const
-    {
-      return !(*this == other);
-    }
   };
 
+  inline bool operator==(const Task& lhs, const Task& rhs)
+  {
+    return lhs.id == rhs.id;
+  }
+
+  inline bool operator!=(const Task& lhs, const Task& rhs)
+  {
+    return !(lhs == rhs);
+  }
 }
 
 #endif

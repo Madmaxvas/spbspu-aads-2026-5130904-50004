@@ -5,11 +5,9 @@
 #include "Vector.hpp"
 #include <cstddef>
 #include <iterator>
-#include <memory>
 
 namespace vasilenko {
   namespace detail {
-
     struct RTreeNode;
 
     class RTreeIterator {
@@ -21,21 +19,17 @@ namespace vasilenko {
       using reference = Location&;
 
     private:
-      Vector<std::shared_ptr<RTreeNode>> nodeStack_;
+      Vector<RTreeNode*> nodeStack_;
       std::size_t locIndex_;
       Location* currentLoc_;
-
       void advance();
 
     public:
-      RTreeIterator(std::shared_ptr<RTreeNode> root, bool isEnd);
-
+      RTreeIterator(RTreeNode* root, bool isEnd);
       reference operator*() { return *currentLoc_; }
       pointer operator->() { return currentLoc_; }
-
       RTreeIterator& operator++();
       RTreeIterator operator++(int);
-
       bool operator==(const RTreeIterator& other) const { return currentLoc_ == other.currentLoc_; }
       bool operator!=(const RTreeIterator& other) const { return currentLoc_ != other.currentLoc_; }
     };
@@ -49,25 +43,20 @@ namespace vasilenko {
       using reference = const Location&;
 
     private:
-      Vector<std::shared_ptr<RTreeNode>> nodeStack_;
+      Vector<const RTreeNode*> nodeStack_;
       std::size_t locIndex_;
       const Location* currentLoc_;
-
       void advance();
 
     public:
-      RTreeConstIterator(std::shared_ptr<RTreeNode> root, bool isEnd);
-
+      RTreeConstIterator(const RTreeNode* root, bool isEnd);
       reference operator*() const { return *currentLoc_; }
       pointer operator->() const { return currentLoc_; }
-
       RTreeConstIterator& operator++();
       RTreeConstIterator operator++(int);
-
       bool operator==(const RTreeConstIterator& other) const { return currentLoc_ == other.currentLoc_; }
       bool operator!=(const RTreeConstIterator& other) const { return currentLoc_ != other.currentLoc_; }
     };
-
   }
 }
 

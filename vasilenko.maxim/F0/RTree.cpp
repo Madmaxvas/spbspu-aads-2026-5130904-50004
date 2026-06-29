@@ -1,12 +1,25 @@
 #include "RTree.hpp"
 
 namespace vasilenko {
-  namespace detail {
 
+  namespace {
+    vasilenko::detail::RTreeNode* findParentHelper(vasilenko::detail::RTreeNode* current, vasilenko::detail::RTreeNode* child)
+    {
+      if (current->isLeaf) return nullptr;
+      for (std::size_t i = 0; i < current->children.size(); ++i) {
+        if (current->children[i].get() == child) return current;
+        auto* p = findParentHelper(current->children[i].get(), child);
+        if (p) return p;
+      }
+      return nullptr;
+    }
+  }
+
+  namespace detail {
     void RTreeIterator::advance()
     {
       while (!nodeStack_.empty()) {
-        auto node = nodeStack_.back();
+        auto* node = nodeStack_.back();
         if (node->isLeaf) {
           if (locIndex_ < node->locations.size()) {
             currentLoc_ = &node->locations[locIndex_];
@@ -18,14 +31,14 @@ namespace vasilenko {
         } else {
           nodeStack_.pop_back();
           for (std::size_t i = node->children.size(); i > 0; --i) {
-            nodeStack_.push_back(node->children[i - 1]);
+            nodeStack_.push_back(node->children[i - 1].get());
           }
         }
       }
       currentLoc_ = nullptr;
     }
 
-    RTreeIterator::RTreeIterator(std::shared_ptr<RTreeNode> root, bool isEnd)
+    RTreeIterator::RTreeIterator(RTreeNode* root, bool isEnd)
       : locIndex_(0), currentLoc_(nullptr)
     {
       if (!isEnd && root) {
@@ -51,7 +64,7 @@ namespace vasilenko {
     void RTreeConstIterator::advance()
     {
       while (!nodeStack_.empty()) {
-        auto node = nodeStack_.back();
+        auto* node = nodeStack_.back();
         if (node->isLeaf) {
           if (locIndex_ < node->locations.size()) {
             currentLoc_ = &node->locations[locIndex_];
@@ -63,14 +76,14 @@ namespace vasilenko {
         } else {
           nodeStack_.pop_back();
           for (std::size_t i = node->children.size(); i > 0; --i) {
-            nodeStack_.push_back(node->children[i - 1]);
+            nodeStack_.push_back(node->children[i - 1].get());
           }
         }
       }
       currentLoc_ = nullptr;
     }
 
-    RTreeConstIterator::RTreeConstIterator(std::shared_ptr<RTreeNode> root, bool isEnd)
+    RTreeConstIterator::RTreeConstIterator(const RTreeNode* root, bool isEnd)
       : locIndex_(0), currentLoc_(nullptr)
     {
       if (!isEnd && root) {
@@ -92,15 +105,14 @@ namespace vasilenko {
       ++(*this);
       return tmp;
     }
-
   }
 
   RTree::RTree()
+    : root_(std::make_unique<detail::RTreeNode>())
   {
-    root_ = std::make_shared<detail::RTreeNode>();
   }
 
-  void RTree::updateBoundingBox(std::shared_ptr<detail::RTreeNode> node)
+  void RTree::updateBoundingBox(detail::RTreeNode* node)
   {
     if (node->isLeaf) {
       if (!node->locations.empty()) {
@@ -120,33 +132,30 @@ namespace vasilenko {
     }
   }
 
-  std::shared_ptr<detail::RTreeNode> RTree::chooseLeaf(std::shared_ptr<detail::RTreeNode> node, const Location& loc)
+  detail::RTreeNode* RTree::chooseLeaf(detail::RTreeNode* node, const Location& loc)
   {
     if (node->isLeaf) {
       return node;
     }
-
-    std::shared_ptr<detail::RTreeNode> bestChild = node->children[0];
+    detail::RTreeNode* bestChild = node->children[0].get();
     long long minEnlargement = -1;
 
     for (std::size_t i = 0; i < node->children.size(); ++i) {
       detail::BoundingBox tempBox = node->children[i]->box;
       tempBox.expand(loc);
       long long enlargement = tempBox.area() - node->children[i]->box.area();
-
       if (minEnlargement == -1 || enlargement < minEnlargement) {
         minEnlargement = enlargement;
-        bestChild = node->children[i];
+        bestChild = node->children[i].get();
       }
     }
     return chooseLeaf(bestChild, loc);
   }
 
-  void RTree::splitNode(std::shared_ptr<detail::RTreeNode> node, std::shared_ptr<detail::RTreeNode> parent)
+  void RTree::splitNode(detail::RTreeNode* node, detail::RTreeNode* parent)
   {
-    auto newNode = std::make_shared<detail::RTreeNode>();
+    auto newNode = std::make_unique<detail::RTreeNode>();
     newNode->isLeaf = node->isLeaf;
-
     std::size_t splitIndex = node->isLeaf ? node->locations.size() / 2 : node->children.size() / 2;
 
     if (node->isLeaf) {
@@ -159,7 +168,7 @@ namespace vasilenko {
       }
     } else {
       for (std::size_t i = splitIndex; i < node->children.size(); ++i) {
-        newNode->children.push_back(node->children[i]);
+        newNode->children.push_back(std::move(node->children[i]));
       }
       std::size_t elementsToRemove = node->children.size() - splitIndex;
       for (std::size_t i = 0; i < elementsToRemove; ++i) {
@@ -168,39 +177,49 @@ namespace vasilenko {
     }
 
     updateBoundingBox(node);
-    updateBoundingBox(newNode);
+    updateBoundingBox(newNode.get());
 
     if (parent) {
-      parent->children.push_back(newNode);
+      parent->children.push_back(std::move(newNode));
+      if (parent->children.size() > MAX_ENTRIES) {
+        detail::RTreeNode* grandParent = findParentHelper(root_.get(), parent);
+        splitNode(parent, grandParent);
+      }
     } else {
-      auto newRoot = std::make_shared<detail::RTreeNode>();
+      auto newRoot = std::make_unique<detail::RTreeNode>();
       newRoot->isLeaf = false;
-      newRoot->children.push_back(node);
-      newRoot->children.push_back(newNode);
-      updateBoundingBox(newRoot);
-      root_ = newRoot;
+      newRoot->children.push_back(std::move(root_));
+      newRoot->children.push_back(std::move(newNode));
+      updateBoundingBox(newRoot.get());
+      root_ = std::move(newRoot);
     }
   }
 
   void RTree::insert(const Location& loc)
   {
-    std::shared_ptr<detail::RTreeNode> leaf = chooseLeaf(root_, loc);
+    detail::RTreeNode* leaf = chooseLeaf(root_.get(), loc);
     leaf->locations.push_back(loc);
-    updateBoundingBox(leaf);
+
+    detail::RTreeNode* curr = leaf;
+    while (curr != nullptr) {
+      updateBoundingBox(curr);
+      curr = findParentHelper(root_.get(), curr);
+    }
 
     if (leaf->locations.size() > MAX_ENTRIES) {
-      splitNode(leaf, nullptr);
+      detail::RTreeNode* parent = findParentHelper(root_.get(), leaf);
+      splitNode(leaf, parent);
     }
   }
 
   Vector<Location*> RTree::findIntersections(int x, int y)
   {
     Vector<Location*> results;
-    Vector<std::shared_ptr<detail::RTreeNode>> stack;
-    stack.push_back(root_);
+    Vector<detail::RTreeNode*> stack;
+    stack.push_back(root_.get());
 
     while (!stack.empty()) {
-      auto node = stack.back();
+      auto* node = stack.back();
       stack.pop_back();
 
       if (node->box.contains(x, y)) {
@@ -213,12 +232,11 @@ namespace vasilenko {
           }
         } else {
           for (std::size_t i = 0; i < node->children.size(); ++i) {
-            stack.push_back(node->children[i]);
+            stack.push_back(node->children[i].get());
           }
         }
       }
     }
     return results;
   }
-
 }
